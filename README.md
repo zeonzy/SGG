@@ -1,0 +1,2 @@
+# SGG
+Static Site Generator
