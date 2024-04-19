@@ -131,6 +131,23 @@ class TestTextNode(unittest.TestCase):
                         TextNode("link1", "link", "www.link1.nl"), TextNode("link2", "link", "www.link2.org")
         ]
         self.assertEqual(test2, test_result2)
+
+    def test_text_to_textnodes(self):
+        test1 = "This is **text** with an *italic* word and a `code block` and an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and a [link](https://boot.dev)"
+        test1 = text_to_textnodes(test1)
+        result1 = [TextNode("This is ", "text"),
+                    TextNode("text", "bold"),
+                    TextNode(" with an ", "text"),
+                    TextNode("italic", "italic"),
+                    TextNode(" word and a ", "text"),
+                    TextNode("code block", "code"),
+                    TextNode(" and an ", "text"),
+                    TextNode("image", "image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+                    TextNode(" and a ", "text"),
+                    TextNode("link", "link", "https://boot.dev"),
+                ]
+        self.assertEqual(test1, result1)
+    
         
 
 if __name__ == "__main__":

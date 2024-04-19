@@ -69,3 +69,13 @@ def split_nodes_link(old_nodes):
         if text_to_do != "":
             output.append(TextNode(text_to_do, "text"))
     return output
+
+def text_to_textnodes(text):
+    text = [TextNode(text, "text")]
+    text = split_nodes_delimiter(text, "**", "bold")
+    text = split_nodes_delimiter(text, "*", "italic")
+    text = split_nodes_delimiter(text, "`", "code")
+    text = split_nodes_image(text)
+    text = split_nodes_link(text)
+    return text
+
