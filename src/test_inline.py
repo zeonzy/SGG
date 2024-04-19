@@ -1,7 +1,7 @@
 import unittest
 # https://docs.python.org/3/library/unittest.html#unittest.TestCase.assertEqual
 from textnode import TextNode
-from inline import split_nodes_delimiter
+from inline import *
 
 class TestTextNode(unittest.TestCase):
     def test_split_nodes_delimiter(self):
@@ -52,6 +52,34 @@ class TestTextNode(unittest.TestCase):
             split_nodes_delimiter([node9], "`", "code")
         except ValueError as e:
             self.assertEqual(str(e), "missing closing delimiter [`]")
+
+    def test_extract_markdown_images(self):
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
+        result = [('image', 'https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png')]
+        self.assertEqual(extract_markdown_images(text),result)
+
+        text1 = "this is a text with ![image](https://test.com/png1) and another ![image](https://test.com/png2) and another ![image](https://test.com/png3)."
+        result1 = [('image', 'https://test.com/png1'), ('image', 'https://test.com/png2'), ('image', 'https://test.com/png3')]
+        self.assertEqual(extract_markdown_images(text1),result1)
+
+        text2 = "This text contains a [link](www.google.nl), another link [link](www.boot.dev) and 1 more linke [link](www.test.org)"
+        result2 = []
+        self.assertEqual(extract_markdown_images(text2),result2)
+
+
+    def test_extract_markdown_links(self):
+        text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+        result = [('link', 'https://www.example.com')]
+        self.assertEqual(extract_markdown_links(text),result)
+
+        text1 = "This text contains a [link](www.google.nl), another link [link](www.boot.dev) and 1 more linke [link](www.test.org)"
+        result1 = [('link', 'www.google.nl'), ('link', 'www.boot.dev'), ('link', 'www.test.org')]
+        self.assertEqual(extract_markdown_links(text1),result1)
+
+        text2 = "this is a text with ![image](https://test.com/png1) and another ![image](https://test.com/png2) and another ![image](https://test.com/png3)."
+        result2 = []
+        self.assertEqual(extract_markdown_links(text2),result2)
+        
 
 if __name__ == "__main__":
     unittest.main()
