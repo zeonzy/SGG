@@ -23,7 +23,49 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return output
 
 def extract_markdown_images(text):
-    return re.findall(r"!\[(image)\]\((.*?)\)",text)
+    return re.findall(r"!\[(.*?)\]\((.*?)\)",text)
 
 def extract_markdown_links(text):
-    return re.findall(r"\[(link)\]\((.*?)\)",text)
+    return re.findall(r"(?<!!)\[(.*?)\]\((.*?)\)",text)
+
+def split_nodes_image(old_nodes):
+    output = []
+    for old_node in old_nodes:
+        if old_node.text_type != "text":
+            output.append(old_node)
+            continue
+        found_images = extract_markdown_images(old_node.text)
+        text_to_do = old_node.text
+        #print(found_images)
+        for text, link in found_images:
+            #print(text, link)
+            text_to_do = text_to_do.split(f"![{text}]({link})",1)
+            if text_to_do[0] != "":
+                output.append(TextNode(text_to_do[0], "text"))
+            text_to_do = text_to_do[1]
+            output.append(TextNode(text, "image", link))
+            #print(text_to_do)
+        if text_to_do != "":
+            output.append(TextNode(text_to_do, "text"))
+    return output
+
+def split_nodes_link(old_nodes):
+    output = []
+    for old_node in old_nodes:
+        if old_node.text_type != "text":
+            output.append(old_node)
+            continue
+        found_links = extract_markdown_links(old_node.text)
+        text_to_do = old_node.text
+        #print(found_images)
+        for text, link in found_links:
+            #print(text, link)
+            text_to_do = text_to_do.split(f"[{text}]({link})",1)
+            if text_to_do[0] != "":
+                output.append(TextNode(text_to_do[0], "text"))
+            text_to_do = text_to_do[1]
+            output.append(TextNode(text, "link", link))
+            #print(text_to_do)
+        if text_to_do != "":
+            output.append(TextNode(text_to_do, "text"))
+    return output

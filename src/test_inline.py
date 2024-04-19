@@ -1,6 +1,6 @@
 import unittest
 # https://docs.python.org/3/library/unittest.html#unittest.TestCase.assertEqual
-from textnode import TextNode
+from textnode import *
 from inline import *
 
 class TestTextNode(unittest.TestCase):
@@ -54,12 +54,12 @@ class TestTextNode(unittest.TestCase):
             self.assertEqual(str(e), "missing closing delimiter [`]")
 
     def test_extract_markdown_images(self):
-        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and [another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
         result = [('image', 'https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png')]
         self.assertEqual(extract_markdown_images(text),result)
 
-        text1 = "this is a text with ![image](https://test.com/png1) and another ![image](https://test.com/png2) and another ![image](https://test.com/png3)."
-        result1 = [('image', 'https://test.com/png1'), ('image', 'https://test.com/png2'), ('image', 'https://test.com/png3')]
+        text1 = "this is a text with ![image1](https://test.com/png1) and another ![image2](https://test.com/png2) and another ![image3](https://test.com/png3)."
+        result1 = [('image1', 'https://test.com/png1'), ('image2', 'https://test.com/png2'), ('image3', 'https://test.com/png3')]
         self.assertEqual(extract_markdown_images(text1),result1)
 
         text2 = "This text contains a [link](www.google.nl), another link [link](www.boot.dev) and 1 more linke [link](www.test.org)"
@@ -68,17 +68,69 @@ class TestTextNode(unittest.TestCase):
 
 
     def test_extract_markdown_links(self):
-        text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+        text = "This is text with a [link](https://www.example.com) and ![another](https://www.example.com/another)"
         result = [('link', 'https://www.example.com')]
         self.assertEqual(extract_markdown_links(text),result)
 
-        text1 = "This text contains a [link](www.google.nl), another link [link](www.boot.dev) and 1 more linke [link](www.test.org)"
-        result1 = [('link', 'www.google.nl'), ('link', 'www.boot.dev'), ('link', 'www.test.org')]
+        text1 = "This text contains a [link1](www.google.nl), another link [link2](www.boot.dev) and 1 more linke [link3](www.test.org)"
+        result1 = [('link1', 'www.google.nl'), ('link2', 'www.boot.dev'), ('link3', 'www.test.org')]
         self.assertEqual(extract_markdown_links(text1),result1)
 
         text2 = "this is a text with ![image](https://test.com/png1) and another ![image](https://test.com/png2) and another ![image](https://test.com/png3)."
         result2 = []
-        self.assertEqual(extract_markdown_links(text2),result2)
+        self.assertEqual(extract_markdown_links(text2),result2) 
+
+    def test_split_nodes_image(self):
+        test1 = split_nodes_image([TextNode(
+        "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another ![second image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)",
+        "text")])
+        test_result1 = [
+        TextNode("This is text with an ", "text"),
+        TextNode("image", "image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+        TextNode(" and another ", "text"),
+        TextNode("second image", "image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png"),
+        ]
+        self.assertEqual(test1, test_result1)
+
+        test2 = split_nodes_image([TextNode("code block", "text"),
+                                   TextNode("code block", "code"),
+                                   TextNode("![image](www.image.png) text", "text"),
+                                   TextNode("[link](www.link.com) text", "text"),
+                                   TextNode("![image1](www.image1.png)![image2](www.image2.png)", "text"),
+        ])
+        test_result2 = [TextNode("code block", "text"),
+                        TextNode("code block", "code"),
+                        TextNode("image", "image", "www.image.png"), TextNode(" text", "text"),
+                        TextNode("[link](www.link.com) text", "text"),
+                        TextNode("image1", "image", "www.image1.png"), TextNode("image2", "image", "www.image2.png")
+        ]
+        self.assertEqual(test2, test_result2)
+
+    def test_split_nodes_link(self):
+        test1 = split_nodes_link([TextNode(
+        "This is text with an [link](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another [second link](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)",
+        "text")])
+        test_result1 = [
+        TextNode("This is text with an ", "text"),
+        TextNode("link", "link", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+        TextNode(" and another ", "text"),
+        TextNode("second link", "link", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png")
+        ]
+        self.assertEqual(test1, test_result1)
+
+        test2 = split_nodes_link([TextNode("code block", "text"),
+                                   TextNode("code block", "code"),
+                                   TextNode("![image](www.image.png) text", "text"),
+                                   TextNode("[link](www.link.com) text", "text"),
+                                   TextNode("[link1](www.link1.nl)[link2](www.link2.org)", "text")
+        ])
+        test_result2 = [TextNode("code block", "text"),
+                        TextNode("code block", "code"),
+                        TextNode("![image](www.image.png) text", "text"),
+                        TextNode("link", "link", "www.link.com"), TextNode(" text", "text"),
+                        TextNode("link1", "link", "www.link1.nl"), TextNode("link2", "link", "www.link2.org")
+        ]
+        self.assertEqual(test2, test_result2)
         
 
 if __name__ == "__main__":

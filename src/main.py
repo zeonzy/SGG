@@ -3,13 +3,9 @@ from htmlnode import *
 from inline import *
 
 def main():
-    text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
-    print(extract_markdown_images(text))
-    
-    text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
-    print(extract_markdown_links(text))
-    pass
-
+    node = TextNode("This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another ![second image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)", "text")
+    new_nodes = split_nodes_image([node])
+    print(f"main output = {new_nodes}")
 
 
 
